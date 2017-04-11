@@ -85,14 +85,6 @@ const evaluate = (x, env=GLOBAL_ENV) => {
   }
 };
 
-/******************************************************************************/
-// Test.
-const program = '(begin (define r 10) (define pi 3.14159) (* pi (* r r)))';
-const tokens = parse(program);
-
-//console.log(tokens);
-console.log(evaluate(parse('(define r 6)')));
-console.log(evaluate(parse('(* r r)')));
-console.log(evaluate(parse('(define square (lambda (x) (* x x)))')));
-console.log(evaluate(parse('(square (square r))')));
-console.log(evaluate(parse(program)));
+export {
+  parse, evaluate
+}
