@@ -2,11 +2,16 @@ import _ from 'lodash';
 
 /******************************************************************************/
 // Front end.
-const tokenize = s => s.replace(/\(/g, ' ( ').replace(/\)/g, ' ) ').trim().split(/\s+/);
+const tokenize = source => 
+  source
+    .replace(/\(/g, ' ( ')
+    .replace(/\)/g, ' ) ')
+    .trim()
+    .split(/\s+/);
 
-const read_from_tokens  = tokens => {
+const read_from_tokens = tokens => {
   if (_.isEmpty(tokens)) {
-    throw 'Unexpected EOF while reading.';
+    throw 'Unexpected EOF.';
   }
   let token = tokens.shift();
   if ('(' === token) {
@@ -33,26 +38,47 @@ const atom = token => {
   return Symbol.for(token);
 };
 
-const parse = program  => read_from_tokens(tokenize(program))
-
+const parse = program => read_from_tokens(tokenize(program))
 
 /******************************************************************************/
 // Environment and eval.
-const make_env = () => {
+const builtins = () => {
   const env = {};
   _({
-    '+': (x, y) => x + y,
-    '-': (x, y) => x - y,
-    '/': (x, y) => x / y,
-    '*': (x, y) => x * y,
-    'begin': (...x) => _.last(x)
+    '+'          : (x, y) => x + y,
+    '-'          : (x, y) => x - y,
+    '/'          : (x, y) => x / y,
+    '*'          : (x, y) => x * y,
+    '%'          : (x, y) => x % y,
+    '<='         : (x, y) => x <= y,
+    'begin'      : (...x) => _.last(x),
+    'car'        : (x) => x[0],
+    'cdr'        : _.tail,
+    'cons'       : _.concat,
+    'dec'        : (x) => x - 1,
+    'eq?'        : (x, y) => x === y,
+    'equal?'     : (x, y) => x == y,
+    'inc'        : (x) => x + 1,
+    'length'     : (x) => x.length,
+    'list'       : (...x) => x,
+    'list?'      : _.isArray,
+    'map'        : _.map,
+    'max'        : _.max,
+    'min'        : _.min,
+    'not'        : (x) => !x,
+    'null?'      : _.isEmpty,
+    'number?'    : _.isFinite,
+    'procedure?' : _.isFunction,
+    'reduce'     : _.reduce,
+    'round'      : _.round,
+    'symbol?'    : (x) => typeof x === 'symbol',
   }).forEach( (value, key) => env[Symbol.for(key)] = value)
   return env;
 };
 
-const GLOBAL_ENV= make_env();
+const GLOBAL_ENV = builtins();
 
-const Procedure = (params, body, env) => (...args) =>  {
+const Procedure = (params, body, env) => (...args) => {
   const penv = {};
   Object.getOwnPropertySymbols(env).forEach(key => {
     penv[key] = env[key];
@@ -60,7 +86,7 @@ const Procedure = (params, body, env) => (...args) =>  {
   _.zip(params, args).forEach(
       _.spread((param, arg) => { penv[param] = arg; }));
   return evaluate(body, penv);
-}
+};
 
 const evaluate = (x, env=GLOBAL_ENV) => {
   if (typeof x === 'symbol') {
@@ -71,7 +97,7 @@ const evaluate = (x, env=GLOBAL_ENV) => {
   } else if(x[0] === Symbol.for('if')) {
     const [_, test, conseq, alt] = x;
     const exp = evaluate(test, env) ? conseq : alt;
-    return eval(exp, env);
+    return evaluate(exp, env);
   } else if(x[0] === Symbol.for('define')) {
     const [_, name, exp] = x;
     env[name] = evaluate(exp, env);
