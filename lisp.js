@@ -111,6 +111,8 @@ const evaluate = (x, env=GLOBAL_ENV) => {
   }
 };
 
+const run = program => evaluate(parse(program));
+
 export {
-  parse, evaluate
+  run, parse, evaluate, read_from_tokens, tokenize
 }

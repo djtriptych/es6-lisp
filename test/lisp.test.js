@@ -1,11 +1,7 @@
-import { parse, evaluate} from '../lisp.js';
+import { run } from '../lisp.js';
 import { expect } from 'chai';
 
 describe('lisp', function () {
-  let run;
-  beforeEach(function () {
-    run = program => evaluate(parse(program));
-  });
   const ftests = [
     ['(+ 3 3)', 6],
     ['(- 3 3)', 0],
@@ -37,10 +33,10 @@ describe('lisp', function () {
         (square (square r)))`, 625],
   ];
   ftests.forEach(([form, value]) => {
-    it(form, function() {
+    it(`evaluates ${form}`, function() {
       expect(run(form)).to.deep.equal(value);
     });
   });
-});
 
+});
 
