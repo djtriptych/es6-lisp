@@ -1,6 +1,8 @@
 import _ from 'lodash';
+import parse, { Sym, Environment } from './parse';
 
 /******************************************************************************/
+
 // Front end.
 const tokenize = source => 
   source
@@ -35,16 +37,13 @@ const atom = token => {
     }
     return parseFloat(token);
   }
-  return Symbol.for(token);
+  return new String(token);
 };
-
-const parse = program => read_from_tokens(tokenize(program))
 
 /******************************************************************************/
 // Environment and eval.
 const builtins = () => {
-  const env = {};
-  _({
+  return {
     '+'          : (x, y) => x + y,
     '-'          : (x, y) => x - y,
     '/'          : (x, y) => x / y,
@@ -72,15 +71,14 @@ const builtins = () => {
     'reduce'     : _.reduce,
     'round'      : _.round,
     'symbol?'    : (x) => typeof x === 'symbol',
-  }).forEach( (value, key) => env[Symbol.for(key)] = value)
-  return env;
+  };
 };
 
 const GLOBAL_ENV = builtins();
 
 const Procedure = (params, body, env) => (...args) => {
   const penv = {};
-  Object.getOwnPropertySymbols(env).forEach(key => {
+  Object.keys(env).forEach(key => {
     penv[key] = env[key];
   });
   _.zip(params, args).forEach(
@@ -89,21 +87,29 @@ const Procedure = (params, body, env) => (...args) => {
 };
 
 const evaluate = (x, env=GLOBAL_ENV) => {
-  if (typeof x === 'symbol') {
+
+  // A reference to a value in the environment.
+  if (x instanceof String) {
     return env[x];
   }
+
+  // A literal.
   else if (!_.isArray(x)) {
     return x;
-  } else if(x[0] === Symbol.for('if')) {
+
+  // Special forms.
+  } else if(x[0] == 'if') {
     const [_, test, conseq, alt] = x;
     const exp = evaluate(test, env) ? conseq : alt;
     return evaluate(exp, env);
-  } else if(x[0] === Symbol.for('define')) {
+  } else if(x[0] == 'define') {
     const [_, name, exp] = x;
     env[name] = evaluate(exp, env);
-  } else if(x[0] === Symbol.for('lambda')) {
+  } else if(x[0] == 'lambda') {
     const [_, params, body] = x;
     return Procedure(params, body, env);
+
+  // Function application.
   } else {
     const proc = evaluate(x[0], env);
     const args = _.map(x.slice(1), x => evaluate(x, env));

@@ -2,7 +2,48 @@ import _ from 'lodash';
 
 const [LPAREN, RPAREN] = '()';
 
-class ParseError extends Error {};
+export class ParseError extends Error {};
+export class UnknownSymbol extends Error {};
+
+export class Sym {
+
+  static map = {};
+
+  constructor(name) {
+    if (Sym.map[name]) {
+      return Sym.map[name];
+    } else  {
+      this.name = name;
+      Sym.map[name] = this;
+    }
+  }
+
+  toString() {
+    return `Sym: ${this.name}`
+  }
+
+  valueOf = toString;
+};
+
+export class Environment {
+
+  constructor(dict) {
+    this.dict = dict;
+    this.parent = null;
+  }
+
+  lookup(symbol) {
+    const key = symbol.name;
+    if (key in this.dict) {
+      return this.dict[symbol.name];
+    } else if (this.parent) {
+      return this.parent.lookup(symbol);
+    } else {
+      throw new UnknownSymbol(symbol.name)
+    }
+  }
+
+}
 
 export const tokenize = (source) =>
   source
@@ -26,7 +67,6 @@ export const s_expression = function* (tokens) {
   yield* s_expression(tokens);
 };
 
-
 export const atom = token => {
   // Parse numbers
   if (_.isFinite(_.toNumber(token))) {
@@ -36,7 +76,7 @@ export const atom = token => {
     return parseFloat(token);
   }
   
-  return (token);
+  return new String(token);
 };
 
 const parse = program => s_expression(tokenize(program)).next().value;
