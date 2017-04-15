@@ -2,11 +2,14 @@ import { run } from '../src/lisp.js';
 import { expect } from 'chai';
 
 describe('lisp', function () {
+
   const ftests = [
     ['(+ 3 3)', 6],
     ['(- 3 3)', 0],
     ['(* 3 3)', 9],
     ['(/ 12 3)', 4],
+    ['(% 12 3)', 0],
+    ['(% 12 5)', 2],
     ['(inc 3)', 4],
     ['(reduce (list 2 3 4) +)', 9],
     ['(map (list 2 3 4) inc)', [3, 4, 5]],
@@ -32,6 +35,7 @@ describe('lisp', function () {
         (define square (lambda (x) (* x x)))
         (square (square r)))`, 625],
   ];
+
   ftests.forEach(([form, value]) => {
     it(`evaluates ${form}`, function() {
       expect(run(form)).to.deep.equal(value);

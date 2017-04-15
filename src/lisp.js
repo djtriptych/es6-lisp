@@ -1,47 +1,8 @@
 import _ from 'lodash';
-import parse, { Sym, Environment } from './parse';
+import parse from './parse';
+import Sym from './sym';
+import Environment from './environment';
 
-/******************************************************************************/
-
-// Front end.
-const tokenize = source => 
-  source
-    .replace(/\(/g, ' ( ')
-    .replace(/\)/g, ' ) ')
-    .trim()
-    .split(/\s+/);
-
-const read_from_tokens = tokens => {
-  if (_.isEmpty(tokens)) {
-    throw 'Unexpected EOF.';
-  }
-  let token = tokens.shift();
-  if ('(' === token) {
-    let L = [];
-    while (tokens[0] !== ')') {
-      L.push(read_from_tokens(tokens));
-    }
-    tokens.shift();
-    return L;
-  } else if (')' === token) {
-    throw 'Unexpected )';
-  } else {
-    return atom(token);
-  }
-};
-
-const atom = token => {
-  if (_.isFinite(_.toNumber(token))) {
-    if (_.parseInt(token) == _.toNumber(token)) {
-      return parseInt(token, 10);
-    }
-    return parseFloat(token);
-  }
-  return new String(token);
-};
-
-/******************************************************************************/
-// Environment and eval.
 const builtins = () => {
   return {
     '+'          : (x, y) => x + y,
@@ -74,23 +35,26 @@ const builtins = () => {
   };
 };
 
-const GLOBAL_ENV = builtins();
+const GLOBAL_ENV = new Environment(builtins());
+
+const SPECIAL = {
+  IF: new Sym('if'),
+  DEFINE: new Sym('define'),
+  LAMBDA: new Sym('lambda'),
+};
 
 const Procedure = (params, body, env) => (...args) => {
-  const penv = {};
-  Object.keys(env).forEach(key => {
-    penv[key] = env[key];
-  });
-  _.zip(params, args).forEach(
-      _.spread((param, arg) => { penv[param] = arg; }));
+  const bound = _.fromPairs(_.zip(_.map(params, 'name'), args));
+  const penv = new Environment(bound);
+  penv.parent = env;
   return evaluate(body, penv);
 };
 
 const evaluate = (x, env=GLOBAL_ENV) => {
 
   // A reference to a value in the environment.
-  if (x instanceof String) {
-    return env[x];
+  if (x instanceof Sym) {
+    return env.lookup(x);
   }
 
   // A literal.
@@ -98,14 +62,14 @@ const evaluate = (x, env=GLOBAL_ENV) => {
     return x;
 
   // Special forms.
-  } else if(x[0] == 'if') {
+  } else if(x[0] === SPECIAL.IF) {
     const [_, test, conseq, alt] = x;
     const exp = evaluate(test, env) ? conseq : alt;
     return evaluate(exp, env);
-  } else if(x[0] == 'define') {
+  } else if(x[0] === SPECIAL.DEFINE) {
     const [_, name, exp] = x;
-    env[name] = evaluate(exp, env);
-  } else if(x[0] == 'lambda') {
+    env.set(name, evaluate(exp, env));
+  } else if(x[0] === SPECIAL.LAMBDA) {
     const [_, params, body] = x;
     return Procedure(params, body, env);
 
@@ -120,5 +84,5 @@ const evaluate = (x, env=GLOBAL_ENV) => {
 const run = program => evaluate(parse(program));
 
 export {
-  run, parse, evaluate, read_from_tokens, tokenize
+  run
 }

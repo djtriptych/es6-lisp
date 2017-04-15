@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import Sym from './sym';
 
 const [LPAREN, RPAREN] = '()';
 
@@ -35,7 +36,7 @@ export const atom = token => {
     return parseFloat(token);
   }
   
-  return new String(token);
+  return new Sym(token);
 };
 
 const parse = program => s_expression(tokenize(program)).next().value;
