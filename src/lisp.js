@@ -10,7 +10,10 @@ const builtins = () => {
     '/'          : (x, y) => x / y,
     '*'          : (x, y) => x * y,
     '%'          : (x, y) => x % y,
+
     '<='         : (x, y) => x <= y,
+    '>='         : (x, y) => x >= y,
+
     'begin'      : (...x) => _.last(x),
     'car'        : (x) => x[0],
     'cdr'        : _.tail,
@@ -41,6 +44,7 @@ const SPECIAL = {
   IF: new Sym('if'),
   DEFINE: new Sym('define'),
   LAMBDA: new Sym('lambda'),
+  QUOTE: new Sym('quote'),
 };
 
 const Procedure = (params, body, env) => (...args) => {
@@ -66,12 +70,18 @@ const evaluate = (x, env=GLOBAL_ENV) => {
     const [_, test, conseq, alt] = x;
     const exp = evaluate(test, env) ? conseq : alt;
     return evaluate(exp, env);
+
   } else if(x[0] === SPECIAL.DEFINE) {
     const [_, name, exp] = x;
     env.set(name, evaluate(exp, env));
+
   } else if(x[0] === SPECIAL.LAMBDA) {
     const [_, params, body] = x;
     return Procedure(params, body, env);
+
+  } else if(x[0] === SPECIAL.QUOTE) {
+    const [_, exp] = x;
+    return exp;
 
   // Function application.
   } else {
