@@ -3,47 +3,6 @@ import _ from 'lodash';
 const [LPAREN, RPAREN] = '()';
 
 export class ParseError extends Error {};
-export class UnknownSymbol extends Error {};
-
-export class Sym {
-
-  static map = {};
-
-  constructor(name) {
-    if (Sym.map[name]) {
-      return Sym.map[name];
-    } else  {
-      this.name = name;
-      Sym.map[name] = this;
-    }
-  }
-
-  toString() {
-    return `Sym: ${this.name}`
-  }
-
-  valueOf = toString;
-};
-
-export class Environment {
-
-  constructor(dict) {
-    this.dict = dict;
-    this.parent = null;
-  }
-
-  lookup(symbol) {
-    const key = symbol.name;
-    if (key in this.dict) {
-      return this.dict[symbol.name];
-    } else if (this.parent) {
-      return this.parent.lookup(symbol);
-    } else {
-      throw new UnknownSymbol(symbol.name)
-    }
-  }
-
-}
 
 export const tokenize = (source) =>
   source
