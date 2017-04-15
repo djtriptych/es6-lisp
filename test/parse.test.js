@@ -1,5 +1,4 @@
-
-import { Sym, Environment, s_expression, tokenize } from '../parse.js';
+import { Sym, Environment, s_expression, tokenize } from '../src/parse.js';
 import { expect } from 'chai';
 
 describe('Sym', function () {

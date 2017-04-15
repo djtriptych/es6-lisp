@@ -1,4 +1,4 @@
-import { run } from '../lisp.js';
+import { run } from '../src/lisp.js';
 import { expect } from 'chai';
 
 describe('lisp', function () {
