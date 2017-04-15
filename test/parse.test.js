@@ -4,7 +4,7 @@ import { expect } from 'chai';
 describe('parser', function () {
 
   describe('tokenize', function () {
-    const ftests = [
+    const tests = [
       ['(\n)', ['(', ')']],
       [' () ', ['(', ')']],
       ['(a b)', ['(', 'a', 'b', ')']],
@@ -15,7 +15,7 @@ describe('parser', function () {
       [';(1 "\\b" )', []],
       ['(+ (+ 3 3) 4)', ['(', '+', '(', '+', '3', '3', ')', '4', ')']],
     ];
-    ftests.forEach(([form, expected]) => {
+    tests.forEach(([form, expected]) => {
       it(form, function() {
         expect([...tokenize(form)]).to.deep.equal(expected);
         return true;

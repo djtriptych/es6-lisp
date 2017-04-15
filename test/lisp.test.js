@@ -48,5 +48,11 @@ describe('lisp', function () {
     });
   });
 
+  it(`evaluates line-separated forms`, function() {
+    const form = '(define x 2)\n(define y 3)\n(+ x y)';
+    const value = 5;
+    expect(run(form)).to.deep.equal(value);
+  });
+
 });
 

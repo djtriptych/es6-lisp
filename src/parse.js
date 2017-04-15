@@ -43,6 +43,7 @@ export const s_expression = function* (tokens) {
   } else if (c === RPAREN) {
     return;
   } else if (_.isUndefined(c)) {
+    return;
     throw new ParseError('Unexpected EOF');
   } else {
     yield atom(c);
@@ -67,5 +68,5 @@ export const atom = token => {
   return new Sym(token);
 };
 
-const parse = program => s_expression(tokenize(program)).next().value;
+const parse = program => s_expression(tokenize(program))
 export default parse;

@@ -91,7 +91,13 @@ const evaluate = (x, env=GLOBAL_ENV) => {
   }
 };
 
-const run = program => evaluate(parse(program));
+const run = program =>  {
+  let v;
+  for (let form of parse(program)) {
+    v = evaluate(form);
+  }
+  return v;
+}
 
 export {
   run
