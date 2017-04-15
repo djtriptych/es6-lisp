@@ -3,9 +3,9 @@ import { expect } from 'chai';
 
 describe('parser', function () {
 
-  describe.only('tokenize', function () {
+  describe('tokenize', function () {
     const ftests = [
-      ['()', ['(', ')']],
+      ['(\n)', ['(', ')']],
       [' () ', ['(', ')']],
       ['(a b)', ['(', 'a', 'b', ')']],
       ['(1 "2" )', ['(', '1', '"2"', ')']],

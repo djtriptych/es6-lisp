@@ -11,22 +11,30 @@ const tokenizer = () => {
     String.raw`[(\`,')]`,            // list & quote constructors
     String.raw`;.*`,                 // comment
     String.raw`"(?:[\\].|[^"])*"`,   // quoted string
-    String.raw`[^\s('"\`,;)]`,       // identifier
+    String.raw`[^\s('"\`,;)]*`,       // identifier
   ].join('|')
-  const splitter = `\\s*(${types}*)(.*)`;
+  const splitter = `\\s*(${types})(.*)`;
   return new RegExp(splitter);
 }
 
-export const tokenize = function* (source) {
+export const tokenize_line = function* (source) {
   const splitter = tokenizer();
   let _, token;
   while (source.length) {
-    [_, token, source] = source.match(splitter);
+    let s = splitter;
+    [_, token, source] = source.match(s);
     if (token.length && !(token[0] === ';')) {
       yield token;
     }
   }
 };
+
+export const tokenize = function* (source) {
+  const lines = source.split(/[\r\n]+/)
+  for (let i = 0; i < lines.length; i++) {
+    yield* tokenize_line(lines[i]);
+  }
+}
 
 export const s_expression = function* (tokens) {
   let c = tokens.next().value;
@@ -49,6 +57,11 @@ export const atom = token => {
       return parseInt(token, 10);
     }
     return parseFloat(token);
+  }
+
+  // Parse strings, stripping double quotes.
+  if (token[0] === '"') {
+    return token.replace(/"/g, '');;
   }
   
   return new Sym(token);
