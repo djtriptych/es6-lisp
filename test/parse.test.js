@@ -3,11 +3,16 @@ import { expect } from 'chai';
 
 describe('parser', function () {
 
-  describe('tokenize', function () {
+  describe.only('tokenize', function () {
     const ftests = [
       ['()', ['(', ')']],
       [' () ', ['(', ')']],
-      ['(a b', ['(', 'a', 'b']],
+      ['(a b)', ['(', 'a', 'b', ')']],
+      ['(1 "2" )', ['(', '1', '"2"', ')']],
+      ['\'(1 "2" )', ['\'', '(', '1', '"2"', ')']],
+      ['`(1 "2" )', ['`', '(', '1', '"2"', ')']],
+      ['(1 "\\b" )', ['(', '1', '"\\b"', ')']],
+      [';(1 "\\b" )', []],
       ['(+ (+ 3 3) 4)', ['(', '+', '(', '+', '3', '3', ')', '4', ')']],
     ];
     ftests.forEach(([form, expected]) => {
@@ -23,6 +28,7 @@ describe('parser', function () {
       ['()', []],
       ['(())', [[]]],
       ['((1))', [[1]]],
+      ['(("1"))', [['1']]],
     ];
     ftests.forEach(([form, expected]) => {
       it(form, function() {

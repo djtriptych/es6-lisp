@@ -5,13 +5,28 @@ const [LPAREN, RPAREN] = '()';
 
 export class ParseError extends Error {};
 
-export const tokenize = (source) =>
-  source
-    .replace(/\(/g, ' ( ')
-    .replace(/\)/g, ' ) ')
-    .trim()
-    .split(/\s+/)
-    [Symbol.iterator]();
+const tokenizer = () => {
+  const types = [
+    String.raw`,@`,                  // spread
+    String.raw`[(\`,')]`,            // list & quote constructors
+    String.raw`;.*`,                 // comment
+    String.raw`"(?:[\\].|[^"])*"`,   // quoted string
+    String.raw`[^\s('"\`,;)]`,       // identifier
+  ].join('|')
+  const splitter = `\\s*(${types}*)(.*)`;
+  return new RegExp(splitter);
+}
+
+export const tokenize = function* (source) {
+  const splitter = tokenizer();
+  let _, token;
+  while (source.length) {
+    [_, token, source] = source.match(splitter);
+    if (token.length && !(token[0] === ';')) {
+      yield token;
+    }
+  }
+};
 
 export const s_expression = function* (tokens) {
   let c = tokens.next().value;
